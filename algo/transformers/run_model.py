@@ -540,10 +540,11 @@ class QuestModel:
                 for i, (text, label) in enumerate(zip(eval_df["text"], eval_df["labels"]))
             ]
         elif "text_a" in eval_df.columns and "text_b" in eval_df.columns:
+            # print("snjdchsidhsiooi")
             eval_examples = [
-                InputExample(i, text_a, text_b, label)
-                for i, (text_a, text_b, label) in enumerate(
-                    zip(eval_df["text_a"], eval_df["text_b"], eval_df["labels"])
+                InputExample(i, text_a, text_b, label, vis)
+                for i, (text_a, text_b, label, vis) in enumerate(
+                    zip(eval_df["text_a"], eval_df["text_b"], eval_df["labels"],eval_df["vis"])
                 )
             ]
         else:
@@ -723,13 +724,10 @@ class QuestModel:
         all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
         all_vis = torch.tensor([f.vis_id for f in features])
-        # for i in features:
-        #   print(i.label_id)
         if output_mode == "classification":
             all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
         elif output_mode == "regression":
             all_label_ids = torch.tensor([int(f.label_id) for f in features], dtype=torch.float)
-        print(all_label_ids)
         dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids, all_vis)
         if args["sliding_window"] and evaluate:
             return dataset, window_counts
@@ -899,7 +897,7 @@ class QuestModel:
         self.model.to(self.device)
 
     def _get_inputs_dict(self, batch):
-        inputs = {"input_ids": batch[0], "attention_mask": batch[1], "labels": batch[3]}
+        inputs = {"input_ids": batch[0], "attention_mask": batch[1], "labels": batch[3], "vis": batch[4]}
 
         # XLM, DistilBERT and RoBERTa don't use segment_ids
         if self.args["model_type"] != "distilbert":
