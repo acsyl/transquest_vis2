@@ -24,17 +24,17 @@ if not os.path.exists(TEMP_DIRECTORY):
 # train = pd.read_csv(TRAIN_FILE, sep='\t', error_bad_lines=False)
 # test = pd.read_csv(TEST_FILE, sep='\t', error_bad_lines=False)
 
-with open("data/en-zh/train.pickle", 'rb') as f:
+with open("data/en-zh/train_majority.pickle", 'rb') as f:
     train = pickle.loads(f.read())
 
-with open("data/en-zh/test.pickle", 'rb') as f:
+with open("data/en-zh/test_majority.pickle", 'rb') as f:
     test = pickle.loads(f.read())
 test.reset_index(drop=True, inplace=True)
 
-with open("data/en-zh/train_vis.pickle", 'rb') as f:
+with open("data/en-zh/new_train_vis.pickle", 'rb') as f:
     vis1 = pickle.loads(f.read())
 
-with open("data/en-zh/test_vis.pickle", 'rb') as f:
+with open("data/en-zh/new_test_vis.pickle", 'rb') as f:
     vis2 = pickle.loads(f.read())
 
 # train
@@ -79,7 +79,7 @@ if transformer_config["evaluate_during_training"]:
 
             model = QuestModel(MODEL_TYPE, MODEL_NAME, num_labels=NUM_LABELS, use_cuda=torch.cuda.is_available(),
                                args=transformer_config)
-            train, eval_df = train_test_split(train, test_size=0.1, random_state=SEED*i)
+            train, eval_df = train_test_split(train, test_size=0.11, random_state=SEED*i)
             # model.train_model(train, eval_df=eval_df)
             if NUM_LABELS == 1:
                 model.train_model(train, eval_df=eval_df, pearson_corr=pearson_corr, spearman_corr=spearman_corr,

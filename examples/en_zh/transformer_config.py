@@ -9,8 +9,8 @@ DRIVE_FILE_ID = None
 MODEL_TYPE = "bert"
 MODEL_NAME = "bert-base-multilingual-cased"
 EVALUATION_FILE = "evaluation.txt"
-NUM_LABELS = 1 # regression
-# NUM_LABELS = 2 # classification
+# NUM_LABELS = 1 # regression
+NUM_LABELS = 2 # classification
 
 transformer_config = {
     'output_dir': 'temp/outputs/',
@@ -69,7 +69,7 @@ transformer_config = {
     "encoding": None,
 
     # extra added
-    "visual": True,
+    "visual": False,
     "visual_features_size": 2048,
     "codebase": "concatenation",
 }

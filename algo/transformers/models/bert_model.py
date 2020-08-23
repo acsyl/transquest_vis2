@@ -68,8 +68,7 @@ class BertForSequenceClassification(BertPreTrainedModel):
                 logits = self.classifier(combine)
         else:
             logits = self.classifier(pooled_output)
-        if !self.config.regression:
-            logits = F.sigmoid(logits)
+        # logits = F.sigmoid(logits)
 
         outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
 
@@ -87,13 +86,13 @@ class BertForSequenceClassification(BertPreTrainedModel):
         #       loss = loss_fct(logits.view(-1), labels.view(-1))
         #       outputs = (loss,) + outputs
         if labels is not None:
-            if self.config.regression:
+            if self.num_labels == 1:
                 #  We are doing regression
                 loss_fct = MSELoss()
                 loss = loss_fct(logits.view(-1), labels.view(-1))
             else:
-                loss_fct = nn.BCELoss(weight=self.weight)
-                loss = loss_fct(logits.view(-1), labels.view(-1))
+                loss_fct = CrossEntropyLoss(weight=self.weight)
+                loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
             outputs = (loss,) + outputs
 
         return outputs  # (loss), logits, (hidden_states), (attentions)
