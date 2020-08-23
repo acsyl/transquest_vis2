@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss, MSELoss
 from transformers.modeling_bert import BertPreTrainedModel, BertModel
@@ -36,8 +37,10 @@ class BertForSequenceClassification(BertPreTrainedModel):
         self.num_labels = config.num_labels
 
         self.bert = BertModel(config)
+        self.reduce = nn.Linear(self.config.visual_features_size, config.hidden_size)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, self.config.num_labels)
+        self.classifier2 = nn.Linear(2*config.hidden_size, self.config.num_labels)
         self.weight = weight
 
         self.init_weights()
@@ -52,25 +55,45 @@ class BertForSequenceClassification(BertPreTrainedModel):
                             head_mask=head_mask)
         # Complains if input_embeds is kept
 
-        pooled_output = outputs[1]
-        pooled_output = self.dropout(pooled_output)
-        logits = self.classifier(pooled_output)
-        logits = F.sigmoid(logits)
+        pooled_output = outputs[1] # size (batch_size, 768)
+        pooled_output = self.dropout(pooled_output) # size (batch_size, 768)
+
+        if self.config.visual:
+            reduced_vis = self.reduce(vis) # size (batch_size, 768)
+            if self.config.codebase == 'concatenation':
+                combine = torch.cat((pooled_output,reduced_vis),1) # size (batch_size, 1536)
+                logits = self.classifier2(combine)
+            else:
+                combine = torch.mul(pooled_output, reduced_vis)
+                logits = self.classifier(combine)
+        else:
+            logits = self.classifier(pooled_output)
+        if !self.config.regression:
+            logits = F.sigmoid(logits)
 
         outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
 
+        # if labels is not None:
+        #     # if self.num_labels == 1:
+        #     #     #  We are doing regression
+        #     #     # logits = torch.sigmoid(logits)
+        #     #     loss_fct = nn.BCEWithLogitsLoss()
+        #     #     loss = loss_fct(logits.view(-1), labels.view(-1))
+        #     #     print(logits.view(-1))
+        #     # else:
+        #       loss_fct = nn.BCELoss(weight=self.weight)
+        #       # print(logits.view(-1, self.num_labels))
+        #       # print(labels.view(-1).long())
+        #       loss = loss_fct(logits.view(-1), labels.view(-1))
+        #       outputs = (loss,) + outputs
         if labels is not None:
-            # if self.num_labels == 1:
-            #     #  We are doing regression
-            #     # logits = torch.sigmoid(logits)
-            #     loss_fct = nn.BCEWithLogitsLoss()
-            #     loss = loss_fct(logits.view(-1), labels.view(-1))
-            #     print(logits.view(-1))
-            # else:
-              loss_fct = nn.BCELoss(weight=self.weight)
-              # print(logits.view(-1, self.num_labels))
-              # print(labels.view(-1).long())
-              loss = loss_fct(logits.view(-1), labels.view(-1))
-              outputs = (loss,) + outputs
+            if self.config.regression:
+                #  We are doing regression
+                loss_fct = MSELoss()
+                loss = loss_fct(logits.view(-1), labels.view(-1))
+            else:
+                loss_fct = nn.BCELoss(weight=self.weight)
+                loss = loss_fct(logits.view(-1), labels.view(-1))
+            outputs = (loss,) + outputs
 
         return outputs  # (loss), logits, (hidden_states), (attentions)

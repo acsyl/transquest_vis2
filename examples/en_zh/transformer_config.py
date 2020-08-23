@@ -8,6 +8,9 @@ GOOGLE_DRIVE = False
 DRIVE_FILE_ID = None
 MODEL_TYPE = "bert"
 MODEL_NAME = "bert-base-multilingual-cased"
+EVALUATION_FILE = "evaluation.txt"
+NUM_LABELS = 1 # regression
+# NUM_LABELS = 2 # classification
 
 transformer_config = {
     'output_dir': 'temp/outputs/',
@@ -41,7 +44,8 @@ transformer_config = {
     'save_eval_checkpoints': True,
     'tensorboard_dir': None,
 
-    'regression': True,
+    'regression': False, # regression
+    # 'regression': False, # classification
 
     'overwrite_output_dir': True,
     'reprocess_input_data': True,
@@ -63,4 +67,9 @@ transformer_config = {
     "manual_seed": 777,
 
     "encoding": None,
+
+    # extra added
+    "visual": True,
+    "visual_features_size": 2048,
+    "codebase": "concatenation",
 }

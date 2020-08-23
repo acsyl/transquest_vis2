@@ -103,6 +103,9 @@ class QuestModel:
         config_class, model_class, tokenizer_class = MODEL_CLASSES[model_type]
         if num_labels:
             self.config = config_class.from_pretrained(model_name, num_labels=num_labels, **kwargs)
+            self.config.visual = args['visual']
+            self.config.visual_features_size = args['visual_features_size']
+            self.config.codebase = args['codebase']
             self.num_labels = num_labels
         else:
             self.config = config_class.from_pretrained(model_name, **kwargs)
@@ -225,7 +228,6 @@ class QuestModel:
                 "Passed DataFrame is not in the correct format. Please rename your columns to text_a, text_b and labels"
             )
         train_dataset = self.load_and_cache_examples(train_examples, verbose=verbose)
-        print(train_dataset)
 
         os.makedirs(output_dir, exist_ok=True)
 
@@ -638,7 +640,10 @@ class QuestModel:
             for key in sorted(result.keys()):
                 writer.write("{} = {}\n".format(key, str(result[key])))
 
-        return results, model_outputs, wrong
+        if args['regression'] is True:
+            return results, model_outputs, wrong
+        else:
+            return results, preds, wrong
 
     def load_and_cache_examples(
         self, examples, evaluate=False, no_cache=False, multi_label=False, verbose=True, silent=False
@@ -723,7 +728,7 @@ class QuestModel:
         all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
-        all_vis = torch.tensor([f.vis_id for f in features])
+        all_vis = torch.tensor([f.vis_id for f in features], dtype=torch.float)
         if output_mode == "classification":
             all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
         elif output_mode == "regression":
@@ -754,11 +759,11 @@ class QuestModel:
 
         extra_metrics = {}
         for metric, func in kwargs.items():
-          for i in range(len(preds)):
-            if preds[i] > 0.5:
-              preds[i] = 1
-            else:
-              preds[i] = 0
+          # for i in range(len(preds)):
+          #   if preds[i] > 0.5:
+          #     preds[i] = 1
+          #   else:
+          #     preds[i] = 0
           extra_metrics[metric] = func(labels, preds)
 
         mismatched = labels != preds
