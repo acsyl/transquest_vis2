@@ -23,7 +23,7 @@ transformer_config = {
     'train_batch_size': 8,
     'gradient_accumulation_steps': 1,
     'eval_batch_size': 8,
-    'num_train_epochs': 1,
+    'num_train_epochs': 12,
     'weight_decay': 0,
     'learning_rate': 2e-5,
     'adam_epsilon': 1e-8,
@@ -32,16 +32,16 @@ transformer_config = {
     'max_grad_norm': 1.0,
     'do_lower_case': False,
 
-    'logging_steps': 300,
-    'save_steps': 300,
+    'logging_steps': 500,
+    'save_steps': 0,
     "no_cache": False,
-    'save_model_every_epoch': True,
+    'save_model_every_epoch': False,
     'n_fold': 1,
     'evaluate_during_training': True,
     'evaluate_during_training_steps': 100,
     "evaluate_during_training_verbose": True,
     'use_cached_eval_features': False,
-    'save_eval_checkpoints': True,
+    'save_eval_checkpoints': False,
     'tensorboard_dir': None,
 
     'regression': False, # regression
@@ -69,7 +69,7 @@ transformer_config = {
     "encoding": None,
 
     # extra added
-    "visual": False,
+    "visual": True,
     "visual_features_size": 2048,
     "codebase": "concatenation",
 }

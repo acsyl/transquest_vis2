@@ -24,17 +24,18 @@ if not os.path.exists(TEMP_DIRECTORY):
 # train = pd.read_csv(TRAIN_FILE, sep='\t', error_bad_lines=False)
 # test = pd.read_csv(TEST_FILE, sep='\t', error_bad_lines=False)
 
-with open("data/en-zh/train_majority.pickle", 'rb') as f:
+with open("data/en-zh/add_train.pickle", 'rb') as f:
     train = pickle.loads(f.read())
+train.reset_index(drop=True, inplace=True)
 
-with open("data/en-zh/test_majority.pickle", 'rb') as f:
+with open("data/en-zh/add_test.pickle", 'rb') as f:
     test = pickle.loads(f.read())
 test.reset_index(drop=True, inplace=True)
 
-with open("data/en-zh/new_train_vis.pickle", 'rb') as f:
+with open("data/en-zh/add_train_vis.pickle", 'rb') as f:
     vis1 = pickle.loads(f.read())
 
-with open("data/en-zh/new_test_vis.pickle", 'rb') as f:
+with open("data/en-zh/add_test_vis.pickle", 'rb') as f:
     vis2 = pickle.loads(f.read())
 
 # train
@@ -42,8 +43,12 @@ col_name = train.columns.tolist()
 col_name.insert(3,'vis')
 train_vis = train.reindex(columns=col_name)
 train_vis['vis'] = train_vis['vis'].astype(object)
+
 for idx, v in enumerate(vis1):
+    # print(idx)
+    # print(train_vis.loc[idx]['score'])
     train_vis['vis'][idx] = v
+    # # print(train_vis['vis'][idx])
     train_vis['score'][idx] = int(train_vis['score'][idx])
 
 # test
